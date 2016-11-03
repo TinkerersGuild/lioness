@@ -6,4 +6,4 @@ class testfetchurl(unittest.TestCase):
 		
 	def test_get(self):
 		#f = fetchurl('')
-		f.command("http://google.com")
+		#f.command("http://google.com")

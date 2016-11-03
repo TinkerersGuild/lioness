@@ -42,6 +42,7 @@ class jargon(Plugin):
 
 				ftxt += ("\n" + url)
 				self.response.setText(ftxt)
+			
 				
 			else:
 

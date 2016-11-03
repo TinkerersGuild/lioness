@@ -20,6 +20,7 @@ class testlunch(unittest.TestCase):
 		self.assertFalse(ch in choice)
 
 	def test_command(self):
+		self.l = lunch(self.dbconn)
 		choice = self.l.get_lunches()
 		ch = self.l.command(' ')
 		self.assertTrue(ch in choice)
