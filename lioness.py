@@ -1,191 +1,213 @@
+#!/usr/bin/python3
+
 import time
 import sys
 from slackclient import SlackClient
 import re
+from database import DataBase
 from channel import ChannelManager
 from users import UserManager
-from plugins.base import PluginManager
+from commander import Commander, CommandArgs
+import yaml
+import logger
+
+#PREFIX = "/home/solitaire/code/python/lioness/"
+
+def load_configs(cfile):
+	"""Load the config from the given absolute path file name"""
+	try:
+		with  open(cfile, "r") as conf_file:
+			conf = yaml.load(conf_file)
+	except :
+		e = sys.exc_info()[0]
+
+		print("Could not load: {}".format(e))
+		conf = dict()
+	return conf
 
 
-DEBUG_LEVEL = 3
 
-def debug(level, message):
-	if (level < DEBUG_LEVEL):
-		print(message)
+class Lioness():
+	""" Lioness is the main class for loading the configs and handling connections
 
-mytoken = ""
-with open("API.key") as api:
-	mytoken = api.readline().strip()
-	api.close()
+		__init__(self, config, log) takes a dictionary of configs and a logger object
 
+		"""
+	def __init__(self, config, log):
+		"""Takes config dict and logger object to initialise """
+		self.log = log
+		self.status = "ok"
+		try:
+			token = config['APIKEY'].strip()
+			self.sc = SlackClient(token)
+		except:
+			self.status = "BAD TOKEN"
 
-debug(0, "+++++++++++++++++++++++++++++\n++STARTING\n")
+		self.dbconn = DataBase(config['dbname'], config['username'], config['passwd'])
+		self.log.log(0, "DBConn {}".format(self.dbconn))
 
-sc = SlackClient(mytoken)
+		tables = self.dbconn.show_tables()
+		self.log.log(0, tables)
 
-_connect = 1
-chanman = ChannelManager()
-channels = chanman.getChannels()
+		self.chanman = ChannelManager()
+		self.channels = self.chanman.get_channels()
 
-people = UserManager()
-owners = people.getOwners()
+		self.people = UserManager()
+		self.people.set_ops(config['owners'])
+		
+		self.commander = Commander(self.dbconn, self.log, config['prefix'])
+		self.botname = config['botname']
+		self.icon = config['icon']
+		
+		self.log.log(1,"Channels to join:")
+		self.log.log(1,self.channels['join'])
 
-plugin = PluginManager()
+		
 
-debug(1,"Channels to join:")
-debug(1,channels['join'])
+	def connect_to_server(self):
+		
+		if (self.sc.rtm_connect()):
+			self.ping_owners("Here I am!")
+			return 1
+		return 0
 
-ops = [owners[own]['id'] for own in owners.keys()]
-
-
-def connect_to_server():
-	
-	if (sc.rtm_connect()):
-		ping_owners("Here I am!")
+	def disconnect(self):
+		#sc.rtm_disconnect()
 		return 1
-	return 0
 
-def disconnect():
-	#sc.rtm_disconnect()
-	return 1
-
-def chanpost(mychannel, message):
-	resp = sc.api_call(
-    	"chat.postMessage", channel=mychannel, text=message,
-    	 username="lioness", icon_url="https://avatars.slack-edge.com/2016-05-12/42349083605_6f1c7e1101ff3fb069d3_48.png"
-	)
+	def chanpost(self,mychannel, message):
+		self.log.log(2, "Chanpost: {} {}".format(mychannel, message))
+		resp = self.sc.api_call(
+	    	"chat.postMessage", channel=mychannel, text=message,
+	    	 username=self.botname, icon_url=self.icon)
+		self.log.log(2, resp)
+		return resp
 
 
-def ping_owners(message):
-	for owner in owners.keys():
-		own = owners[owner]
-		resp = sc.api_call("im.open", user = own['id'])
-		own['chat'] = resp['channel']['id']
-		debug(1, "Pinging owner {}".format(own))
-		debug(1,sc.api_call("chat.postMessage", as_user="true:", channel=own['chat'], text=message))
+	def ping_owners(self,message):
+		for op in self.people.get_owners():
+			resp = self.sc.api_call("im.open", user = own['id'])
+			own['chat'] = resp['channel']['id']
+			self.log.log(1, "Pinging owner {}".format(own))
+			self.log.log(1,sc.api_call("chat.postMessage", as_user="true:", channel=own['chat'], text=message))
 
 
-def reload_plugins():
-	plugin.initPlugins()
-	return 	plugin.getPlugins()
-
-
-debug(1,"Starting ... \n")
-debug(1,"My owners are: ")
-
-for own in owners.keys():
-	debug(1, own)
-
-if (connect_to_server()):
-
-	plugins = reload_plugins()
-
-	debug(1, "Checking API")
-	debug (1, sc.api_call("api.test"))
-	#DEBUG_LEVEL = 0
-
-
-	
-
-
-	chans = sc.api_call("channels.list")
-	for chan in chans['channels']:
-		chanman.setLookup(chan['id'], chan['name'])		
-	
-		debug(3,"{} : {}".format(chan['name'], chan['id']))
-		channels['known'].append(chan['name'])
-
-		if (chan['name'] in channels['join']):
-
-			debug(2, "Found watching channel {}".format(chan['name']))
-			channels['watching'].append(chan['id'])
-
-	for chan in channels['watching']:
-		debug(3,"Watching {}".format(chan))		
-
+	def add_chans(self,chans):
+		for chan in chans['channels']:
+			self.chanman.set_lookup(chan['id'], chan['name'])		
 		
-	resp = sc.api_call(
-    	"chat.postMessage", channel="#bot_testing", text="boop",
-    	 username="lioness", icon_url="https://avatars.slack-edge.com/2016-05-12/42349083605_6f1c7e1101ff3fb069d3_48.png"
-	)
+			self.log.log(3,"{} : {}".format(chan['name'], chan['id']))
+			self.channels['known'].append(chan['name'])
 
-	for k,v in resp.items():
-		debug(3,"Key: {} Value: {} \n".format(k, v))
+			if (chan['name'] in self.channels['join']):
 
-	ts = resp.get('ts')
+				self.log.log(2, "Found watching channel {}".format(chan['name']))
+				self.channels['watching'].append(chan['id'])
+
+		for chan in self.channels['watching']:
+			self.log.log(3,"Watching {}".format(chan))			
+
+
+	def get_timestamp(self,msg):
+		if (msg.get('ts')):
+			if (float(msg['ts']) > float(self.ts)):
+				self.log.log(0, "Setting timestamp {} ".format(msg['ts']))
+			return msg['ts']
+		else:
+			return self.ts
 
 	
-	debug(0,"Timestamp: {}".format(ts))
 
-	
 
-	while(_connect):
 
-		if (_connect == 2):
-			debug(0, "++++++++++++ REBOOT OUT OF CHEESE +++++")
-			disconnect()
-			if (connect_to_server()):
-				plugins = reload_plugins()
-
-				_connect = 1
-			else:
-				connect = 0
+	def setup(self):
+		chans = self.sc.api_call("channels.list")
+		self.add_chans(chans)
+		resp = self.chanpost("#bot_testing", "boop")
 		
+		for k,v in resp.items():
+			self.log.log(3,"Key: {} Value: {} \n".format(k, v))
+		
+		self.ts = resp.get('ts')
+		self.log.log(0,"Timestamp: {}".format(self.ts))
 
-		time.sleep(1)
+		self.log.log(1, "Checking API")
+		self.log.log(1, self.sc.api_call("api.test"))
+		#DEBUG_LEVEL = 0
 
-		for chan in channels['watching']:
-			cname = "#"+chanman.getName(chan)
-			resp = sc.api_call("channels.history",
-				channel=chan, oldest = ts 
-				)
+	def listen(self):
+		_connect = 1
+		while(_connect):
+			# HUP received, reload the plugins, disconnect from the server and reconnect
+			if (_connect == 2):
+				self.log.log(0, "++++++++++++ REBOOT OUT OF CHEESE +++++")
+				self.disconnect()
+				if (self.connect_to_server()):
+					#self.plugins = self.reload_plugins()
+
+					_connect = 1
+				else:
+					_connect = 0
 			
-			for msg in resp['messages']:
-				if (float(msg['ts']) > float(ts)):
-					debug(0, "Setting timestamp".format(ts))
-					ts = msg['ts']
-				user = msg.get('user')
-				if (re.match('!', msg.get('text'))):
+
+			time.sleep(0.5)
+
+			for chan in self.channels['watching']:
+				cname = "#"+ self.chanman.get_name(chan)
+				resp = self.sc.api_call("channels.history",
+					channel=chan, oldest = self.ts 
+					)
+				
+				for msg in resp['messages']:
+					self.ts = self.get_timestamp(msg)
+					user = msg.get('user')
+					txt = msg.get('text', '')
+					if (re.match('!', txt)):
+						self.log.log(2, "COMMAND MESSAGE {}".format(txt))
+						txt = txt.split()
+
+						commandargs = CommandArgs()
+						
+						commandargs.chan = cname
+						commandargs.user = user
+						commandargs.command = txt[0][1:]
+						commandargs.text = ' '
 					
-					comstring = msg.get('text').split()
-					comstring[0] = comstring[0][1:]
+						if (len(txt) > 1):
+							commandargs.text = ' '.join(txt[1:])
 					
-					debug(2,"Message from {}: {}".format(user, msg))
-					debug(2, "Parsed: {}".format( comstring))
-
-					if (plugins.get(comstring[0])):
-							try:
-								debug(0, " ({})trying {}".format(cname, comstring[0]))
-								response = plugins[comstring[0]].command(comstring) 
-								debug(0, response)
-
-								chanpost(cname, "{}".format(response.getText()))
-							except:
-								e = sys.exc_info()[0]
-								chanpost(cname, "the {} plugin has a problem! Blame Jai! {}".format(comstring[0], e))
-
-								debug(0, "Could not perform plugin! ")
 
 
-					elif (user in ops):
-						if (comstring[0] == 'die'):
-							debug(0, "{} says die!".format(user))
-							_connect = 0
-						elif (comstring[0] == 'hup'):
-							_connect = 2
-						elif (comstring[0] == 'debug' ):
-							try:
-								lev = int(comstring[1])
-								DEBUG_LEVEL = lev
-								chanpost("#bot_testing", "Setting debug level to {}".format(lev))
-							except:
-								chanpost("#bot_testing", "Cannot set level {}".format(lev))
-					else:
-						chanpost(cname, "I have no idea what you are asking me to do.")
+						reply = self.commander.handle(commandargs)
+
+						self.chanpost(reply.getChan(), reply.getText())
+
+
+				
 
 			
 
-		
 
 
-print("Exiting")
+if __name__ == '__main__':
+	
+	try:
+		conf = load_configs("conf.yaml")
+	except:
+		e = sys.exc_info()[0]
+		print("Can't load config - have you broken it? {}".format(e))
+	
+	log = logger.Logger(conf['debug_lvl'], conf['prefix'] + conf['logfile'])
+	
+
+	log.log(2,"CONFIGS: {}".format(conf))	
+	
+	lioness = Lioness(conf, log)	
+	if (lioness.connect_to_server()):	
+		lioness.setup()	
+		lioness.listen()
+
+
+
+
+	

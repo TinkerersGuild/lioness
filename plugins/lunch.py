@@ -1,15 +1,8 @@
 from plugins.base import PluginResponse, Plugin
-from random import randint
 import sys
 
-class jibo(Plugin):
-	def __init__(self):
-		self.keyword = "jibo"
-		
-	def command(self, text):
-		response = PluginResponse()
-		response.setText("Why don't you go fuck yourself")
-		return response
+from random import randint
+
 
 class lunch(Plugin):	
 
@@ -19,47 +12,74 @@ class lunch(Plugin):
 		"I feel like "
 		)
 
-	lunches = (
-'the Korean place',
-'and the supermarket',
-'Bay city burrito',
-'Beer deluxe',
-'Haddons',
-'Hawthorn',
-'Kebabji',
-'Le resistance',
-'Lucy\'s Dumplings',
-'Samurai',
-'Santorini',
-'Schnitz',
-'shuji sushi',
-'Spud bar',
-'Subway',
-'The nevermind',
-'The roll place in the plaza', 
-'Zen'
-		)
 
-	def __init__(self):
+
+	def __init__(self, dbconn):
 		self.keyword = "lunch"
+		self.dbconn = dbconn
 
 	def command(self, text):
-		
 		response = PluginResponse()
 		response.setText("The usual place")
 		
+
 		try:
-			if(self.keyword == text[0]):
-				response.setText(self.chooseLunch())   
+		
+			if (text != ' '):
+				
+				resp = self.parse_command(text)
+				response.setText(resp)
+				
 			else:
-				response.setText("I have no idea what that is")
+				response.setText(self.choose_lunch())   
 		except: 
 
 			e = sys.exc_info()[0]
-			print("NFI {}".format(e))
+			response.setText( "NFI {}".format(e))
 		return response
 
-	def chooseLunch(self):
+	def choose_lunch(self, naked = 0):
 		prefix =  self.prefixes[randint(0, len(self.prefixes) -1)]  
-		lunch = self.lunches[randint(0,len(self.lunches) -1)]
+		lunches = self.get_lunches()
+		lunch = lunches[randint(0,len(lunches) -1)]
+		if (naked):
+			return lunch
+
 		return prefix + lunch
+
+	def parse_command(self,text):
+		resp = ''
+			
+		if (text[1] == 'list'):
+		#	print("listing")
+			resp = self.list_lunches()
+
+		elif (text[1] == 'add'):
+			rname = " ".join(text[2:])
+					
+			resp = self.add_lunch()
+
+			
+		return resp
+
+	def list_lunches(self):
+		#print("still listing")
+		
+		return "\n".join(self.get_lunches())
+
+	def get_lunches(self):
+		#print("getting")
+		lunches = list()
+		for s in self.dbconn.query("SELECT name FROM restaurants", ()):
+			#print(s[0])
+			lunches.append(s[0])
+		return lunches
+
+	def add_lunch(self, name):
+		try:
+			self.dbconn.query("""INSERT INTO `restaurants`(`name`) VALUES (%s)""", (name,))
+			return "Added {}".format(name)
+		except:
+			e = sys.exc_info()[0]
+			return "DBI {}".format(e)
+
