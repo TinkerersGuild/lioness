@@ -10,11 +10,12 @@ class fetchurl(Plugin):
 	def __init__(self, dbconn):
 		self.keyword = "fetchurl"
 		self.response = PluginResponse()
-
 	def command(self, text):
 		self.response.setText("Nope")
-		url = text[0]
-		resp = requests.get(url)
+		url = text[1:-1]
+
+
+		resp = requests.request('GET', url)
 		if (resp.status_code == 200):
 			txt = html2text.html2text(resp.text).split("\n")
 			txt = txt[6:-6]

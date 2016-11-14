@@ -11,7 +11,7 @@ from commander import Commander, CommandArgs
 import yaml
 import logger
 
-PREFIX = "/home/solitaire/lioness/"
+#PREFIX = "/home/solitaire/lioness/"
 
 def load_configs(cfile):
 	"""Load the config from the given absolute path file name"""
@@ -192,7 +192,7 @@ class Lioness():
 if __name__ == '__main__':
 	
 	try:
-		conf = load_configs(PREFIX +"conf.yaml")
+		conf = load_configs("conf.yaml")
 	except:
 		e = sys.exc_info()[0]
 		print("Can't load config - have you broken it? {}".format(e))
