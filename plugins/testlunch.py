@@ -13,17 +13,12 @@ class testlunch(unittest.TestCase):
 		ch = self.l.choose_lunch(1)
 		self.assertTrue(ch in choice)
 	
-	def test_bad_get(self):
-		
-		choice = self.l.get_lunches()
-		ch = self.l.choose_lunch()
-		self.assertFalse(ch in choice)
 
 	def test_command(self):
 		self.l = lunch(self.dbconn)
 		choice = self.l.get_lunches()
 		ch = self.l.command(' ')
-		self.assertTrue(ch in choice)
+		self.assertTrue(ch.getText().split()[-1] in choice)
 
 	def test_add(self):
 		name = "Testaurant"
@@ -31,3 +26,4 @@ class testlunch(unittest.TestCase):
 		self.assertFalse(resp.split()[0] == 'DBI')
 		check = self.dbconn.query("SELECT * from `restaurants` WHERE `name`=%s", (name,))
 		self.assertFalse(len(check) == 0)
+

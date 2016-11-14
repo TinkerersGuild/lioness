@@ -45,7 +45,7 @@ class Commander():
 				try:
 					self.log.log(0, " ({})trying {} with {} ".format(args.chan, args.command, args.text))
 					response = cmd.command(args.text) 
-					self.log.log(0, response.getText())
+					self.log.log(0, "Response: {}\n".format(response.getText()))
 				except:
 					e = sys.exc_info()[0]
 					self.log.log(0, "Could not perform plugin! {}".format(e))

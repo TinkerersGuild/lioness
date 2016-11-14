@@ -27,7 +27,7 @@ class lunch(Plugin):
 		
 			if (text != ' '):
 				
-				resp = self.parse_command(text)
+				resp = self.parse_command(text.split())
 				response.setText(resp)
 				
 			else:
@@ -50,6 +50,7 @@ class lunch(Plugin):
 	def parse_command(self,text):
 		resp = ''
 			
+<<<<<<< HEAD
 		if (text[1] == 'list'):
 		#	print("listing")
 			resp = self.list_lunches()
@@ -59,6 +60,18 @@ class lunch(Plugin):
 					
 			resp = self.add_lunch()
 
+=======
+		if (text[0] == 'list'):
+			
+			resp = self.list_lunches()
+
+		elif (text[0] == 'add'):
+			rname = " ".join(text[2:])
+					
+			resp = self.add_lunch()
+		else:
+			resp = "bad {}".format(text)
+>>>>>>> jai
 			
 		return resp
 
