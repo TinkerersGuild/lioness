@@ -3,6 +3,7 @@
 ######
 from plugins.base import PluginResponse, Plugin
 import sys
+import re
 import requests
 import html2text
 
@@ -11,10 +12,18 @@ class fetchurl(Plugin):
 		self.keyword = "fetchurl"
 		self.response = PluginResponse()
 	
-        def command(self, text):
+	def command(self, text):
 		self.response.setText("Nope")
+		print("Text: {}".format(text))
+		if re.search("\|", text):
+			print("match")
+			text = text.split("|")[0]
+			print("match")
+			text = text + ">"
+			print("added")
 		url = text[1:-1]
 
+		print("URL: {}".format(url))
 
 		resp = requests.request('GET', url)
 		if (resp.status_code == 200):

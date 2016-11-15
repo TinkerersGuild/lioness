@@ -57,7 +57,7 @@ class PluginManager():
 				except:
 					e = sys.exc_info()[0]
 
-					#print("----  Could not load: {}".format(e))		
+					print("----  Could not load: {}".format(e))		
 		
 	def register_plugins(self):
 		
