@@ -14,17 +14,13 @@ class fetchurl(Plugin):
 	
 	def command(self, text):
 		self.response.setText("Nope")
-		print("Text: {}".format(text))
+		
 		if re.search("\|", text):
-			print("match")
 			text = text.split("|")[0]
-			print("match")
 			text = text + ">"
-			print("added")
 		url = text[1:-1]
 
-		print("URL: {}".format(url))
-
+		
 		resp = requests.request('GET', url)
 		if (resp.status_code == 200):
 			txt = html2text.html2text(resp.text).split("\n")
