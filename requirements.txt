@@ -1,5 +1,5 @@
 slackclient
-pyyaml
+yaml
 unittest
 MySQLdb
 logger

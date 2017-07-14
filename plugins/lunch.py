@@ -18,7 +18,8 @@ class lunch(Plugin):
 		self.keyword = "lunch"
 		self.dbconn = dbconn
 
-	def command(self, text):
+	def command(self, args):
+		text = args.text
 		response = PluginResponse()
 		response.setText("The usual place")
 		
@@ -27,7 +28,7 @@ class lunch(Plugin):
 		
 			if (text != ' '):
 				
-				resp = self.parse_command(text.split())
+				resp = self.parse_command(text)
 				response.setText(resp)
 				
 			else:
@@ -50,16 +51,14 @@ class lunch(Plugin):
 	def parse_command(self,text):
 		resp = ''
 			
-		if (text[0] == 'list'):
-			
+		if (text[1] == 'list'):
+		#	print("listing")
 			resp = self.list_lunches()
 
-		elif (text[0] == 'add'):
+		elif (text[1] == 'add'):
 			rname = " ".join(text[2:])
 					
 			resp = self.add_lunch()
-		else:
-			resp = "bad {}".format(text)
 
 			
 		return resp

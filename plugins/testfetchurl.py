@@ -5,6 +5,5 @@ from plugins.fetchurl import fetchurl
 class testfetchurl(unittest.TestCase):	
 		
 	def test_get(self):
-		f = fetchurl('')
-		resp = f.command(("http://google.com",))
-		
+		#f = fetchurl('')
+		f.command("http://google.com")

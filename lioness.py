@@ -11,6 +11,7 @@ from commander import Commander, CommandArgs
 import yaml
 import logger
 
+PREFIX = "/home/solitaire/lioness/"
 
 def load_configs(cfile):
 	"""Load the config from the given absolute path file name"""
@@ -161,6 +162,9 @@ class Lioness():
 					self.ts = self.get_timestamp(msg)
 					user = msg.get('user')
 					txt = msg.get('text', '')
+					if (re.match("^<https?://", txt)):
+						txt = '!store ' + txt 
+
 					if (re.match('!', txt)):
 						self.log.log(2, "COMMAND MESSAGE {}".format(txt))
 						txt = txt.split()
@@ -179,7 +183,7 @@ class Lioness():
 
 						reply = self.commander.handle(commandargs)
 
-						self.chanpost(reply.getChan(), reply.getText())
+						self.chanpost("#bot_testing", reply.getText())
 
 
 				
@@ -191,7 +195,7 @@ class Lioness():
 if __name__ == '__main__':
 	
 	try:
-		conf = load_configs("conf.yaml")
+		conf = load_configs(PREFIX +"conf.yaml")
 	except:
 		e = sys.exc_info()[0]
 		print("Can't load config - have you broken it? {}".format(e))

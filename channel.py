@@ -6,9 +6,10 @@
 class ChannelManager():
 	lookup = dict()
 	revlookup = dict()
-	channels = { "join": ("bot_testing",),
-       	"known": list(),
-		"watching": list()
+	channels = { "join": ("bot_testing","general", "random",
+        "botsbeersandbots", "musketeers"),
+			"known": list(),
+			"watching": list()
 	}
 	def __init__(self):
 		pass

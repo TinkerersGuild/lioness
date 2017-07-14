@@ -21,7 +21,9 @@ class known(Plugin):
 			#print("----- {}".format(self.tables))
 		
 
-	def command(self, text):
+	def command(self, args):
+            
+		text = args.text
 		respstr = "Well, that went horribly wrong"
 
 		tbl = ("name", "users")

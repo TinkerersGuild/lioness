@@ -49,7 +49,7 @@ class PluginManager():
 			self.log.log(0,"LOOKING FOR {}".format(pp))
 			
 			if (pp != self.prefix+"base"):
-#				print("--Loading {}".format(pp))
+				self.log.log(2,"--Loading {}".format(pp))
 				try:
 					p = imp.find_module(pp)
 						
@@ -57,7 +57,7 @@ class PluginManager():
 				except:
 					e = sys.exc_info()[0]
 
-					#print("----  Could not load: {}".format(e))		
+					self.log.log(0,"----  Could not load: {}".format(e))		
 		
 	def register_plugins(self):
 		

@@ -13,7 +13,8 @@ class jargon(Plugin):
 		self.keyword = "jargon"
 		self.response = PluginResponse()
 
-	def command(self, text):
+	def command(self, args):
+		text = args.text
 		self.response.setText("Nope")
 		if (text !=' '):
 			searchstr = "-".join(text.split())
@@ -42,7 +43,6 @@ class jargon(Plugin):
 
 				ftxt += ("\n" + url)
 				self.response.setText(ftxt)
-			
 				
 			else:
 
