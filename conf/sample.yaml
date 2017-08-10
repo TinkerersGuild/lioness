@@ -1,0 +1,13 @@
+prefix: "path/to/code/base"
+debug_lvl: 7
+logfile: "bot_log.txt"
+passwd: unlikely
+dbname: somedb
+username: silly
+owners:
+    'someguy':
+     'id': 'U12345'
+APIKEY: HAHAHAHA
+botname: kenneth
+enable_plugins: 1
+icon: 'https://avatars.slack-edge.com/2017-08-02/220332634273_67bbbbb6181a1328efb2_24.jpg'
