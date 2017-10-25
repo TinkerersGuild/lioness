@@ -278,9 +278,14 @@ if __name__ == '__main__':
     log.debug("CONFIGS: {}".format(conf))  
     
     lioness = Lioness(conf, log)  
+    print("Connecting")
     if (lioness.connect_to_server()):    
+        print("Upsetting")
         lioness.setup() 
+        print("Listening")
         lioness.listen()
+    else:
+        print("Could not connect")
 
 
 
