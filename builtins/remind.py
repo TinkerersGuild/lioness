@@ -8,6 +8,7 @@ from pytz import timezone
 import parsedatetime.parsedatetime as pdt
 from datetime import datetime, timedelta
 from plugins import PluginResponse, Plugin
+import utils
 
 #XXX TODO 
 # This works ok, but the message is a bit mangled. What we should do
@@ -49,7 +50,10 @@ class remind(Plugin):
             return self.response
 
         target = "me"
+
         remindtime = "tomorrow"
+        
+
         if (re.search(" ", params[0])): 
             target, remindtime = params[0].split(" ", 1)
         else: 
@@ -57,11 +61,12 @@ class remind(Plugin):
         reminder = " ".join(params[1:])
 
 
-        try:
-            maybetime = self.cal.parse(remindtime)
-            self.bot.log.debug("Time from {0}: {1}".format(remindtime, maybetime))
-        except:
-            maybetime = self.cal.parse("tomorrow")
+        maybetime = utils.parse_date(remindtime)
+#        try:
+#            maybetime = self.cal.parse(remindtime)
+#            self.bot.log.debug("Time from {0}: {1}".format(remindtime, maybetime))
+#        except:
+#            maybetime = self.cal.parse("tomorrow")
             
         remindtime = time.strftime('%Y-%m-%d %H:%M:%S', maybetime[0]) 
       

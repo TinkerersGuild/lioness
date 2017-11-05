@@ -49,7 +49,7 @@ class Lioness():
         tables = self.dbconn.show_tables()
         self.log.info( tables)
 
-        self.chanman = ChannelManager()
+        self.chanman = ChannelManager(dbconn=self.dbconn, log=self.log)
         self.channels = self.chanman.get_channels()
 
 
@@ -110,20 +110,7 @@ class Lioness():
             self.log.debug(sc.api_call("chat.postMessage", as_user="true:", channel=own['chat'], text=message))
 
 
-    def add_chans(self,chans):
-        for chan in chans['channels']:
-            self.chanman.set_lookup(chan['id'], chan['name'])        
-        
-            self.log.debug("{} : {}".format(chan['name'], chan['id']))
-            self.channels['known'].append(chan['name'])
-
-            if (chan['name'] in self.channels['join']):
-
-                self.log.debug( "Found watching channel {}".format(chan['name']))
-                self.channels['watching'].append(chan['id'])
-
-        for chan in self.channels['watching']:
-            self.log.debug("Watching {}".format(chan))           
+    
 
 
     def get_timestamp(self,msg):
@@ -140,7 +127,7 @@ class Lioness():
 
     def setup(self):
         chans = self.sc.api_call("channels.list")
-        self.add_chans(chans)
+        self.chanman.add_chans(chans)
         resp = self.chanpost("#bot_testing", "boop")
         
         for k,v in resp.items():

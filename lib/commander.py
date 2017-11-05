@@ -28,7 +28,7 @@ class Commander():
         self.log.critical( "CHANNEL: " + args.chan)
         response = PluginResponse()
         #self.log.warning("Message from :{}:{}:{}".format(args.user, args.command, args.text))
-    
+        response.setChan(args.chan)
         self.log.warning( "Looking for {}".format(args.command))
         
         if (self.commands.get(args.command)):
@@ -56,7 +56,7 @@ class Commander():
         else:
             response.setText("I have no idea what you are asking me to do.")
 
-        response.setChan(args.chan)
+        
         return response
 
     def auth_user(self, userID, level):
