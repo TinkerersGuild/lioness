@@ -5,6 +5,8 @@ import sys
 
 
 class PluginResponse(object):
+# need to expand this with further commands - it would be nice to chain
+# commands so that !handle spawns !get which spawns !schedule, etc
         _text = ''
         _chan = ''
         _user = ''

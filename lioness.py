@@ -39,6 +39,7 @@ class Lioness():
         self.status = "ok"        
         try:
             token = config['APIKEY'].strip()
+            os.environ["BOT_TOKEN"] = token
             self.sc = SlackClient(token)
         except:
             self.status = "BAD TOKEN"
@@ -139,19 +140,29 @@ class Lioness():
         self.log.critical( "Checking API")
         self.sc.api_call("api.test")
         #DEBUG_LEVEL = 0
-    def parse_response(self, response, cname):
-        
-      for msg in response['messages']:
-        self.ts = self.get_timestamp(msg)
-        user = self.sc.api_call("users.info", user=msg.get('user'))
+    def parse_response(self, event):
+        print("parsing {}".format(event))
+        self.ts = event["ts"]
+        cname = event["channel"]
+        userid = event.get("user", "bot")
+        user = self.sc.api_call("users.info", user=userid)
+        print("User {}".format(user))
         #self.log.debug( "User object: {}".format(user))
-        txt = msg.get('text', '')
+        txt = event.get('text', '')
+        subtype = event.get('subtype', '')
         if not "error" in user:
         # probably a bot
             self.people.check_and_add(user)
                         
             if (re.match("^<https?://", txt)):
                 txt = '!store ' + txt 
+            elif (subtype != ''):
+                self.log.critical("FILE MESSAGE {}".format(event))
+                file_data = event.get('file', '')
+                if (file_data != ''):
+                    url = file_data.get('url_private', "none")
+                    fileID = file_data.get('id', "none")
+                    txt = "!handle {0} {1} {2} {3}".format(subtype, url, txt, fileID)
 
             if (re.match('!', txt)):
                 self.log.debug( "COMMAND MESSAGE {}".format(txt))
@@ -166,8 +177,9 @@ class Lioness():
         
                 if (len(txt) > 1):
                     commandargs.text = ' '.join(txt[1:])
-                    
+                
                 return(self.commander.handle(commandargs))
+
 
     def get_next_job(self):
         self.job = self.scheduler.get_next_job()
@@ -216,18 +228,29 @@ class Lioness():
                 self.get_next_job()
 
            
-            for chan in self.channels['watching']:
-                try: 
-                    cname = "#"+ self.chanman.get_name(chan)
-                    resp = self.sc.api_call("channels.history", channel=chan, oldest = self.ts )
-
-                    if "messages" in resp:
-                        reply = self.parse_response(resp, cname)
+            resp = self.sc.rtm_read()
+            try:
+                for event in resp:
+                    if event["type"] == "message":
+                        print(resp)
+                        reply = self.parse_response(event)
                         if reply and self.verbose:
                             self.send_im(reply.getUser(), reply.getText())
                             self.chanpost("#bot_testing", reply.getUser() + " : " + reply.getText())
-                except:
-                    self.log.critical("Something went wrong at 232: {}".format(sys.exc_info()[1]))
+            except:
+                self.log.critical("Something went wrong at 232: {}".format(sys.exc_info()[1]))
+            #for chan in self.channels['watching']:
+            #    try: 
+            #        cname = "#"+ self.chanman.get_name(chan)
+            #        resp = self.sc.api_call("channels.history", channel=chan, oldest = self.ts )
+#
+                    #if "messages" in resp:
+                        #reply = self.parse_response(resp, cname)
+                        #if reply and self.verbose:
+                            #self.send_im(reply.getUser(), reply.getText())
+                            #self.chanpost("#bot_testing", reply.getUser() + " : " + reply.getText())
+                #except:
+                    #self.log.critical("Something went wrong at 232: {}".format(sys.exc_info()[1]))
             
 
 if __name__ == '__main__':
