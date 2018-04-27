@@ -20,13 +20,14 @@ class Commander():
         self.log = bot.log
         self.bot = bot
         self.enable_plugins = enable_plugins
-        plugin = PluginManager(bot, prefix)
-        self.commands = plugin.get_plugins()
+        self.plugin = PluginManager(bot, prefix)
+        self.commands = self.plugin.get_plugins()
         self.log.warning("COMMANDS: {}".format(self.commands))
 
     def handle(self, args):
         self.log.critical( "CHANNEL: " + args.chan)
         response = PluginResponse()
+        response.setUser(args.user["user"]["id"])
         #self.log.warning("Message from :{}:{}:{}".format(args.user, args.command, args.text))
         response.setChan(args.chan)
         self.log.warning( "Looking for {}".format(args.command))
@@ -41,6 +42,13 @@ class Commander():
                     self.bot.log.critical("Authed  {0} for {1}".format(args.user["user"]["name"], args.command))
                     try:
                         self.log.critical( " ({})trying {} with {} ".format(args.chan, args.command, args.text))
+                        try:
+                            resp = self.bot.people.get_user_opts(args.user["user"]["id"],cmd.opt)
+                            args.opt = resp
+                        except: 
+                            self.log.warning("Excepted!")
+                            args.opt = 1
+                        self.log.warning("Opts in commander {}".format(args.opt) )
                         response = cmd.command(args) 
                         response.setUser(args.user["user"]["id"])
                         self.log.warning( response.getText())
@@ -63,7 +71,9 @@ class Commander():
         if (self.bot.people.get_user_level(userID) > level):
             return 1
         return 0
-
+    def reload_plugins(self):
+        self.commands = self.plugin.init_plugins()
+        self.commands = self.plugin.get_plugins()
     def parse_opts(self, text):
         self.log.warning( "Trying to parse")
         opts = dict()

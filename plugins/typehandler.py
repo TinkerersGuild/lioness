@@ -13,6 +13,7 @@ class store(Plugin):
         self.response = PluginResponse()
         self.error = ""
         self.dbconn = dbconn
+        self.opt = "files"
 
 
     def command(self, args):
@@ -24,7 +25,11 @@ class store(Plugin):
         fileID = text[-1]
         stored = url
         if (tag == 'file_share'):
-            print("File: {0} {1} ".format(url, fileID))
+            print("File: {0} {1} opts {2} ".format(url, fileID, args.opt))
+            if (args.opt == 0):
+                print("\n\nOpted out - not storing\n\n")
+            else:
+                print("\n\nOpted no worries\n\n")
             try:
                 resp = requests.get(url, headers={"Authorization":"Bearer {}".format(os.environ["BOT_TOKEN"])}, stream=True)
                 resp.raise_for_status()

@@ -17,10 +17,15 @@ class lunch(Plugin):
         def __init__(self, dbconn):
                 self.keyword = ("lunch",)
                 self.dbconn = dbconn
+                self.opt = "lunch"
 
         def command(self, args):
                 text = args.text
                 response = PluginResponse()
+                if (args.opt ==  0):
+                    response.setText("No lunch for you")
+                    return response
+
                 response.setText("The usual place")
                 
 

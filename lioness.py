@@ -57,7 +57,7 @@ class Lioness():
         self.scheduler = Scheduler(dbconn = self.dbconn, log = self.log)
 
 
-        self.people = UserManager(self.dbconn, self.sc)
+        self.people = UserManager(self.dbconn, self.sc, self)
         self.people.set_ops(config['owners'])
         self.people.update_users()
         
@@ -235,8 +235,9 @@ class Lioness():
                         print(resp)
                         reply = self.parse_response(event)
                         if reply and self.verbose:
+                            print(reply.getUser())
                             self.send_im(reply.getUser(), reply.getText())
-                            self.chanpost("#bot_testing", reply.getUser() + " : " + reply.getText())
+                            self.chanpost("#bot_testing", self.people.build_user_from_id(reply.getUser())["name"] + " : " + reply.getText())
             except:
                 self.log.critical("Something went wrong at 232: {}".format(sys.exc_info()[1]))
             #for chan in self.channels['watching']:

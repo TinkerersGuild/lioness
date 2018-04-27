@@ -6,10 +6,11 @@ import re
 class UserManager():
         OPS = list()
         OWNERS = list()
-        def __init__(self, dbconn, sc):
+        def __init__(self, dbconn, sc, bot):
                 self.dbconn = dbconn
                 self.error = 0
                 self.sc = sc
+                self.bot = bot
         def add_owner(self, op):
                 self.OWNERS.append(op)
                 self.set_op(op)
@@ -45,7 +46,11 @@ class UserManager():
                 user["name"] = self.error[0][1]
                 return user
                     
-
+        def get_user_opts(self, userID, opt):
+                opts = self.dbconn.query("SELECT * FROM useropts WHERE `userID` = %s AND optionID = (SELECT optionID from options where name = %s)" , [userID,opt] )
+                self.bot.log.warning("opts results {} len {} ".format(opts,len(opts)))
+                return len(opts)
+                
         def get_user_level(self,userID):
                 levels = self.dbconn.query("SELECT level FROM users WHERE `userID` = %s", [userID,] )
                 #print(levels)

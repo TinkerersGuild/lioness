@@ -10,7 +10,7 @@ from passlib.hash import pbkdf2_sha256
 
 class password(Plugin):
     def __init__(self, **kwargs):
-        self.keyword = ("password",)
+        self.keyword = ("password","auth")
         self.response = PluginResponse()
         self.error = ""
         self.bot = ""
@@ -23,6 +23,7 @@ class password(Plugin):
 
     def command(self, args):
         self.response.setText(self.usage)
+        self.bot.log.warning("I think this is: {}".format(args.command))
         if (args.text == ''):
                 return self.response
 
