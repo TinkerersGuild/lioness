@@ -1,2 +1,1 @@
-echo $LIONESS
-mysqldump --defaults-file=$LIONESS/mysql.cred lioness > docs/lioness_bup.sql
+mysqldump --defaults-file=/usr/local/share/lioness/conf/mysql.cred lioness > docs/lioness_bup.sql
