@@ -25,7 +25,6 @@ class password(Plugin):
         self.response.setText(self.usage)
         str.strip(args.text)
         self.bot.log.warning(len(args.text))
-        self.bot.log.warning("Glorp:{}:- ".format(args.text))
         resp = 'No options found'
         if (len (args.text) == 1):
             self.bot.log.warning("Listing")
@@ -39,10 +38,12 @@ class password(Plugin):
             if (text[0] == 'in'):
                 self.bot.log.warning("Inning")
                 resp = self.bot.dbconn.query("""INSERT INTO useropts(userID, optionID) VALUES(%s, (SELECT optionID from options WHERE name=%s)) """, (args.user["user"]["id"],text[1]))
+                self.response.setText("Option {} set. In theory.".format(text[1]))
             elif (text[0] == 'out'):
                 self.bot.log.warning("outing")
                 self.bot.log.warning(" delete: {} {} ".format(args.user["user"]["id"],text[1]))
                 resp = self.bot.dbconn.query("""DELETE FROM useropts WHERE userID=%s AND optionID = (SELECT optionID from options WHERE name=%s) """, (args.user["user"]["id"],text[1]))
+                self.response.setText("Option {} unset. In theory.".format(text[1]))
 
 
         self.bot.log.warning(resp)
