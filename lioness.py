@@ -141,12 +141,12 @@ class Lioness():
         self.sc.api_call("api.test")
         #DEBUG_LEVEL = 0
     def parse_response(self, event):
-        print("parsing {}".format(event))
+        #print("parsing {}".format(event))
         self.ts = event["ts"]
         cname = event["channel"]
         userid = event.get("user", "bot")
         user = self.sc.api_call("users.info", user=userid)
-        print("User {}".format(user))
+        #print("User {}".format(user))
         #self.log.debug( "User object: {}".format(user))
         txt = event.get('text', '')
         subtype = event.get('subtype', '')
@@ -232,10 +232,10 @@ class Lioness():
             try:
                 for event in resp:
                     if event["type"] == "message":
-                        print(resp)
+                        #print(resp)
                         reply = self.parse_response(event)
                         if reply and self.verbose:
-                            print(reply.getUser())
+                            #print(reply.getUser())
                             self.send_im(reply.getUser(), reply.getText())
                             self.chanpost("#bot_testing", self.people.build_user_from_id(reply.getUser())["name"] + " : " + reply.getText())
             except:
