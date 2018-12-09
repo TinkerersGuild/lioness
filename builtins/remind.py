@@ -68,7 +68,7 @@ class remind(Plugin):
 #        except:
 #            maybetime = self.cal.parse("tomorrow")
             
-        remindtime = time.strftime('%Y-%m-%d %H:%M:%S', maybetime[0]) 
+#        remindtime = time.strftime('%Y-%m-%d %H:%M:%S', maybetime) 
       
         if (target == "me"):
             target = self.bot.people.user_id_by_name(args.user["user"]["name"])
@@ -78,8 +78,8 @@ class remind(Plugin):
             if (tryuser):
                 target = tryuser[0]
             
-        self.add_job((args.user["user"]["id"], target, "tell", remindtime, reminder ))
+        self.add_job((args.user["user"]["id"], target, "tell", maybetime, reminder ))
         self.bot.get_next_job()
-        self.response.setText("Reminding {} at {} : {}".format(target, remindtime, reminder))
+        self.response.setText("Reminding {} at {} : {}".format(target, maybetime, reminder))
         
         return self.response
