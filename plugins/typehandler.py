@@ -9,11 +9,12 @@ import html2text
 
 class store(Plugin):
     def __init__(self, dbconn):
-        self.keyword = ("handle","files")
+        self.keyword = ("handle","files", "links")
         self.response = PluginResponse()
         self.error = ""
         self.dbconn = dbconn
         self.opt = "files"
+        print("Done loading")
 
 
     def command(self, args):
@@ -60,6 +61,12 @@ class store(Plugin):
                 resp = ""
                 for myfile in self.error:
                     resp += myfile[0] + "\n"
+                self.response.setText(resp)
+        elif args.command == "links":
+                self.error = self.dbconn.query("""SELECT text from `store` WHERE userID = %s AND`tag`=%s""" , (userID,"generic"))
+                resp = ""
+                for myfile in self.error:
+                    resp += " {} \n".format(myfile[0]) 
                 self.response.setText(resp)
 
 
